@@ -1,0 +1,13 @@
+flask
+opencv-python
+pillow
+numpy
+requests
+beautifulsoup4
+openai
+uvicorn
+fastapi
+python-multipart
+python-dotenv
+# For development purposes
+pytest  
