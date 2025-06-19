@@ -11,3 +11,4 @@ python-multipart
 python-dotenv
 # For development purposes
 pytest  
+gunicorn
