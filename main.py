@@ -45,7 +45,7 @@ async def scan_comic(file: UploadFile = File(...)):
             ],
             max_tokens=1000
         )
-
+        analysis = response.choices[0].message.content
         print("AI RAW RESPONSE:", analysis)
 
 
