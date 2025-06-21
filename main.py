@@ -7,6 +7,16 @@ from fastapi.responses import JSONResponse
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 app = FastAPI()
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://comicvault-2854f.web.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.post("/scan_comic/")
 async def scan_comic(file: UploadFile = File(...)):
