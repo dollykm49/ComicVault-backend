@@ -4,10 +4,11 @@ import openai
 import json
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
 app = FastAPI()
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,37 +18,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.post("/scan_comic/")
 async def scan_comic(file: UploadFile = File(...)):
     image_bytes = await file.read()
     base64_image = base64.b64encode(image_bytes).decode('utf-8')
-    image_data_url = f"data:{file.content_type};base64,{base64_image}"
 
     prompt = (
-        "You are Comic Scout, an easy going fun expert in comic book grading and identification. "
-        "Analyze this comic book cover image. Extract the comic's title and issue number. "
-        "Identify visible flaws (e.g., spine ticks, corner wear). Estimate its CGC grade. "
-        "If you can't identify something, leave that value blank. "
-        "Estimate current value in USD, and say if it's rare/sought after. "
-        "Respond in valid JSON with these keys: title, issue, grade, defects, value_usd, rarity, notes."
+        "You are Comic Scout, an expert comic grader. Analyze this comic book cover image and return ONLY valid JSON with these keys: "
+        "title, issue, grade, defects, value_usd, rarity, notes. "
+        "If you can't identify something, leave that value blank. Respond only in pure JSON with no other text."
     )
 
     try:
-        response = openai.chat.completions.create(
-            model="gpt-4-vision-preview",
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You analyze comics from images."},
-                {"role": "user", "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": image_data_url}}
-                ]}
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "image", "image": {"data": base64_image}}
+                    ]
+                }
             ],
             max_tokens=1000
         )
+
         analysis = response.choices[0].message.content
         print("AI RAW RESPONSE:", analysis)
-
 
         # Try to parse the AI's response as JSON
         try:
@@ -68,4 +66,3 @@ async def scan_comic(file: UploadFile = File(...)):
 
     except Exception as e:
         return JSONResponse(content={"error": str(e)})
-
